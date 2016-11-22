@@ -20,9 +20,11 @@ CREATE TABLE `bxd_pay_detail` (
   `usid` varchar(32) NOT NULL COMMENT '记录相关用户usid',
   `amt` decimal(10,0) DEFAULT NULL COMMENT '当前记录金额',
   `notes` varchar(100) NOT NULL COMMENT '备注说明',
-  `state` int(11) NOT NULL COMMENT '处理状态',
+  `state` int(11) NOT NULL COMMENT '处理状�?,
   `process_date` datetime NOT NULL COMMENT '处理时间',
   `create_date` datetime NOT NULL COMMENT '创建时间',
-  `last_update_date` datetime NOT NULL COMMENT '最后更新时间',
+  `last_update_date` datetime NOT NULL COMMENT '最后更新时�?,
   PRIMARY KEY (`detail_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='打款、回款记录明细表';
+
+ssss
