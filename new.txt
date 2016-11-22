@@ -23,10 +23,10 @@ CREATE TABLE `bxd_pay_detail` (
   `state` int(11) NOT NULL COMMENT '处理状�?,
   `process_date` datetime NOT NULL COMMENT '处理时间',
   `create_date` datetime NOT NULL COMMENT '创建时间',
-  `last_update_date` datetime NOT NULL COMMENT '最后更新时�?,
+  `last_update_date` datetime NOT NULL COMMENT '最后更新时�?,
   PRIMARY KEY (`detail_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='打款、回款记录明细表';
 
 ss
 
-branch
+branch  aaa
