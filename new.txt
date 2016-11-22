@@ -1,52 +1,28 @@
-tc_subject_draft/tc_subject_draft_isomer
-tc_subject_bidding/tc_subject_bidding_isomer
-tc_subject_repaying/tc_subject_repaying_isomer
-tc_subject_repaid/tc_subject_repaid_isomer
-
-tc_subject_failure/tc_subject_failure_isomer
-
-tc_subject_properties
+/help/listMoreNews?id=16061318-1133-7620-1250-910284093957
 
 
-1¡¢¸ù¾İorigin_id£¨¹ØÁªÒÔÏÂ±íÄ¬ÈÏsubject_id£©
 
-tc_agent_pay/tc_agent_pay_isomer      CushionPay µæ¸¶¼ÇÂ¼±í
-tc_auto_bid_Info/tc_auto_bid_Info_isomer    ×Ô¶¯Í¶±ê¼ÇÂ¼
-tc_bid /tc_bid_isomer              Í¶±ê¼ÇÂ¼±í
-tc_collecting_detail_part/tc_collecting_detail_part_isomer     PartTakeBackDetail ²¿·İÊÕ¿îÃ÷Ï¸
-tc_credit_assignment/tc_credit_assignment_buy_isomer/tc_credit_assignment_sell_isomer         ´ıÊÕ¿îÕ®È¨×ªÈÃ BidTransInfo
-tc_cushion_pay_mid_calculate   µæ¸¶¼ÆËãÖĞ¼ä±í
-
-2¡¢¸ù¾İuser_id
-
-tc_auto_bid_config  ×Ô¶¯Í¶±ê¹æÔòÉèÖÃ
-tc_auto_bid_rule     ×Ô¶¯Í¶±ê¹æÔò±í
-tc_auto_issuing_config  ×Ô¶¯·¢±êÅäÖÃ
-tc_auto_issuing_rule ×Ô¶¯·¢±ê¼ÇÂ¼±íAutoPuhlishRule
-tc_bbs_ranking BBSÂÛÌ³Í¶×ÊÅÅĞĞ°ñ(²ğ·Ö¼üuser_id) (²»ÖØÒª)
-tc_bid_bonus_second  SLD037¶ş¼¶ÍÆ¹ãÌá³ÉÃ÷Ï¸£¨²ğ·Ö¼übelogn_user_id£© (²»ÖØÒª)
-tc_bid_reward  LoanRewardInfo Í¶×ÊÌá³ÉĞÅÏ¢ (²ğ·Ö¼ü reward_user_id)   (²»ÖØÒª)
+16071910-3922-5799-1907-856028132511
 
 
-3¡¢¼æÈİÀÏÊı¾İÇ¨ÒÆ
-tc_subject_reward_detail/tc_subject_reward_detail_isomer
-tc_subject_reward/tc_subject_reward_isomer
-tc_subject_comment £¨¿ÉÄÜ²»ÒªÁË£©
+a40e28bbe4654c02b93461a48f50d004&time=20160928142540&uid=1308120001&oid=1001&usid=33
+
+<![CDATA[]]>
 
 
-4¡¢Í³¼ÆÏà¹Ø
-tc_subject_statistic_by_day    Ã¿ÈÕÆ½Ì¨ÒµÎñĞÅÏ¢Í³¼Æ(²ğ·Ö¼üyearMonthDay)
 
-5¡¢logÏà¹Ø±í
-tc_subject_approve_history     ±êµÄÉóºË¼ÇÂ¼¡£ÀÏÆ½Ì¨ApproveActive
-tc_auto_bid_config_log            ×Ô¶¯Í¶±êÅäÖÃÀúÊ·±í
-tc_auto_bid_log    ×Ô¶¯Í¶±êÒµÎñºÛ¼£¡¢Á÷Ë®
-tc_auto_bid_rule_log  ×Ô¶¯Í¶±ê¹æÔòÀúÊ·
-tc_auto_issuing_log    ×Ô¶¯·¢±ê´¦Àí¼ÇÂ¼
-
-
-6¡¢ÎŞÏà¹Ø
-tc_area
-tc_blacklist  ºÚÃûµ¥ĞÅÏ¢±í
-
-
+CREATE TABLE `bxd_pay_detail` (
+  `detail_no` varchar(32) NOT NULL COMMENT 'æ˜ç»†ç¼–å·',
+  `batch_no` varchar(32) NOT NULL COMMENT 'æ‰¹æ¬¡ç¼–å·',
+  `loan_id` varchar(32) NOT NULL COMMENT 'ç›¸å…³æ ‡çš„ç¼–å·',
+  `plan_id` varchar(32) NOT NULL COMMENT 'ç›¸å…³è®°å½•ç¼–å·',
+  `user_id` int(11) NOT NULL COMMENT 'è®°å½•ç›¸å…³ç”¨æˆ·ç¼–å·',
+  `usid` varchar(32) NOT NULL COMMENT 'è®°å½•ç›¸å…³ç”¨æˆ·usid',
+  `amt` decimal(10,0) DEFAULT NULL COMMENT 'å½“å‰è®°å½•é‡‘é¢',
+  `notes` varchar(100) NOT NULL COMMENT 'å¤‡æ³¨è¯´æ˜',
+  `state` int(11) NOT NULL COMMENT 'å¤„ç†çŠ¶æ€',
+  `process_date` datetime NOT NULL COMMENT 'å¤„ç†æ—¶é—´',
+  `create_date` datetime NOT NULL COMMENT 'åˆ›å»ºæ—¶é—´',
+  `last_update_date` datetime NOT NULL COMMENT 'æœ€åæ›´æ–°æ—¶é—´',
+  PRIMARY KEY (`detail_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='æ‰“æ¬¾ã€å›æ¬¾è®°å½•æ˜ç»†è¡¨';
