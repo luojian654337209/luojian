@@ -27,3 +27,5 @@ CREATE TABLE `bxd_pay_detail` (
   PRIMARY KEY (`detail_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='打款、回款记录明细表';
 
+ss
+

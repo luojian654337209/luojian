@@ -1,0 +1,401 @@
+select 
+  `uac_withdrawal`.`id`, 
+  `uac_withdrawal`.`origin_id`, 
+  `uac_withdrawal`.`user_id`, 
+  `uac_withdrawal`.`type`, 
+  `uac_withdrawal`.`apply_amount`, 
+  `uac_withdrawal`.`bank_id`, 
+  `uac_withdrawal`.`bank_account_id`, 
+  `uac_withdrawal`.`bank_user_name`, 
+  `uac_withdrawal`.`bank_locus_name`, 
+  `uac_withdrawal`.`bank_locus_province`, 
+  `uac_withdrawal`.`bank_locus_city`, 
+  `uac_withdrawal`.`approve_time`, 
+  `uac_withdrawal`.`approve_result`, 
+  `uac_withdrawal`.`approve_user_id`, 
+  `uac_withdrawal`.`approve_msg`, 
+  `uac_withdrawal`.`status`, 
+  `uac_withdrawal`.`create_time`, 
+  `uac_withdrawal`.`update_time`, 
+  `uac_withdrawal`.`update_user_id`, 
+  `uac_withdrawal`.`handling_charge`, 
+  `uac_withdrawal`.`verify_code`, 
+  `uac_withdrawal`.`trans_id`, 
+  `uac_withdrawal`.`trans_start_date`, 
+  `uac_withdrawal`.`trans_end_date`, 
+  `uac_withdrawal`.`trans_type`, 
+  `uac_withdrawal`.`trans_amount`, 
+  `uac_withdrawal`.`trans_meno`, 
+  `uac_withdrawal`.`trans_state`, 
+  `uac_withdrawal`.`integral`, 
+  `uac_withdrawal`.`ub_id`, 
+  `uac_withdrawal`.`apply_notes`, 
+  `uac_withdrawal`.`is_refund`, 
+  `uac_withdrawal`.`ten_status`, 
+  `uac_withdrawal`.`mbts_id`, 
+  `uac_withdrawal`.`pay_type`, 
+  `uac_withdrawal`.`tzbao_approve_time`, 
+  `uac_withdrawal`.`is_notice`, 
+  `uac_withdrawal`.`apply_total_amount`, 
+  `uac_withdrawal`.`actual_to_account_amount`, 
+  `uac_withdrawal`.`charge_trans_amout`, 
+  `uac_withdrawal`.`charge_checkout_cash_rate`, 
+  `uac_withdrawal`.`cost_total_amout`, 
+  `uac_withdrawal`.`cost_amout`, 
+  `uac_withdrawal`.`cost_amout_hb`, 
+  `uac_withdrawal`.`on_day`, 
+  `uac_withdrawal`.`is_ll_cash`, 
+  `uac_withdrawal`.`ll_cash_amount`, 
+  `uac_withdrawal`.`channel`, 
+  `uac_withdrawal`.`td_result`, 
+  `uac_withdrawal`.`td_query_id`, 
+  `uac_withdrawal`.`td_query_time`, 
+  `uac_withdrawal`.`apply_from_ip`, 
+  `uac_withdrawal`.`apply_td_token`, 
+  `uac_withdrawal`.`apply_user_agent`, 
+  `uac_withdrawal`.`apply_from_type` 
+from 
+  `uac_withdrawal` 
+where 
+  (
+    (
+      `uac_withdrawal`.`create_time` <= '2016-06-15 17:01:01'
+    ) 
+    AND (`uac_withdrawal`.`bank_id` != 29) 
+    AND (
+      `uac_withdrawal`.`approve_result` = 0
+    ) 
+    AND (
+      `uac_withdrawal`.`user_id` not in (201285,659107,654852,676388,658867,669300,640987,202739,677966)
+    ) 
+    AND (`uac_withdrawal`.`status` = 0) 
+    AND (`uac_withdrawal`.`type` = 0)
+  )
+（原语句都是不等于，太长，我改成not in了。
+建议：
+user_id和bank_id使用不等于，使用不到索引，业务上能否使用in的方式。如果使用，
+可以建一个(user_id,bank_id,apprve_reslut,status，create_time)的索引
+这个语句应该是查询自动还款的用户。
+
+  select 
+  `uac_last_fund_running_by_day`.`user_id`, 
+  max (
+    `uac_last_fund_running_by_day`.`year_month_day`
+  ) 
+from 
+  `uac_last_fund_running_by_day` 
+group by 
+  `uac_last_fund_running_by_day`.`user_id`
+建议：
+这个是一个所有查询用户的最新时间，全表扫描，能否把用户最新时间缓存起来，不用每次去库里查询。
+还有，能否先过滤部分用户在排序，不用所有用户都计算。
+如果是执行频率很低的统计，可以放到从库查询。
+select 
+  `t1`.`id`, 
+  `t1`.`origin_id`, 
+  `t1`.`type`, 
+  `t1`.`order_no`, 
+  `t1`.`date_value`, 
+  `t1`.`user_id`, 
+  `t1`.`trans_amount`, 
+  `t1`.`amount`, 
+  `t1`.`handling_charge`, 
+  `t1`.`rate`, 
+  `t1`.`error_msg`, 
+  `t1`.`dc_signature`, 
+  `t1`.`approve_result`, 
+  `t1`.`status`, 
+  `t1`.`from_ip`, 
+  `t1`.`create_time`, 
+  `t1`.`return_time`, 
+  `t1`.`update_time`, 
+  `t1`.`update_user_id`, 
+  `t1`.`bank_no`, 
+  `t1`.`from_ssid`, 
+  `t1`.`bank_id`, 
+  `t1`.`next_check_time`, 
+  `t2`.`user_real_name` as `user_real_name`, 
+  `t2`.`login_username` 
+from 
+  `uac_deposit_online` `t1` 
+  join `uac_user_redundancy` `t2` on `t1`.`user_id` = `t2`.`user_id` 
+where 
+  (
+    (
+      (
+        (`t1`.`status` = : 1) 
+        and (`t1`.`create_time` >= : 2)
+      ) 
+      and (`t1`.`create_time` <= : 3)
+    ) 
+    and (`t1`.`approve_result` = : 4)
+  ) 
+order by 
+  `t1`.`create_time` desc 
+limit 
+  : 5, 
+  : 6
+
+建议
+新建一个
+insert into `tmp_uac_last_fund_running_by_day` 
+select 
+  t.* 
+from 
+  (
+    select 
+      * 
+    from 
+      `uac_last_fund_running_by_day` as `uac_last_fund_running_by_day` 
+    order by 
+      `year_month_day` desc
+  ) as `t` 
+group by 
+  `t`.`user_id`
+
+
+  select 
+  `t1`.`id`, 
+  `t1`.`origin_id`, 
+  `t1`.`type`, 
+  `t1`.`order_no`, 
+  `t1`.`date_value`, 
+  `t1`.`user_id`, 
+  `t1`.`trans_amount`, 
+  `t1`.`amount`, 
+  `t1`.`handling_charge`, 
+  `t1`.`rate`, 
+  `t1`.`error_msg`, 
+  `t1`.`dc_signature`, 
+  `t1`.`approve_result`, 
+  `t1`.`status`, 
+  `t1`.`from_ip`, 
+  `t1`.`create_time`, 
+  `t1`.`return_time`, 
+  `t1`.`update_time`, 
+  `t1`.`update_user_id`, 
+  `t1`.`bank_no`, 
+  `t1`.`from_ssid`, 
+  `t1`.`bank_id`, 
+  `t1`.`next_check_time`, 
+  `t2`.`user_real_name` as `user_real_name`, 
+  `t2`.`login_username` 
+from 
+  `uac_deposit_online` `t1` 
+  join `uac_user_redundancy` `t2` on `t1`.`user_id` = `t2`.`user_id` 
+where 
+  (
+    (
+      (
+        (`t1`.`status` = : 1) 
+        and (`t1`.`create_time` >= : 2)
+      ) 
+      and (`t1`.`create_time` <= : 3)
+    ) 
+    and (`t1`.`approve_result` = : 4)
+  ) 
+order by 
+  `t1`.`create_time` desc 
+limit 
+  : 5, 
+  : 6
+
+18w
+
+  select 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`late_fee`, 
+    4
+  ) as `late_fee`, 
+  `tc_repayment_detail_isomer`.`status`, 
+  `tc_repayment_detail_isomer`.`bid_id`, 
+  `tc_repayment_detail_isomer`.`belong_user_id`, 
+  `tc_repayment_detail_isomer`.`create_user_id`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`actual_interest_amount`, 
+    4
+  ) as `actual_interest_amount`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`total_amount`, 
+    4
+  ) as `total_amount`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`actual_late_fee`, 
+    4
+  ) as `actual_late_fee`, 
+  `tc_repayment_detail_isomer`.`repayment_plan_id`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`actual_amount`, 
+    4
+  ) as `actual_amount`, 
+  `tc_repayment_detail_isomer`.`repayment_status`, 
+  `tc_repayment_detail_isomer`.`origin_id`, 
+  `tc_repayment_detail_isomer`.`sequence`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`use_hb`, 
+    4
+  ) as `use_hb`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`service_amount`, 
+    4
+  ) as `service_amount`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`actual_service_amount`, 
+    4
+  ) as `actual_service_amount`, 
+  `tc_repayment_detail_isomer`.`create_time`, 
+  `tc_repayment_detail_isomer`.`subject_id`, 
+  `tc_repayment_detail_isomer`.`score_level`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`amount`, 
+    4
+  ) as `amount`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`total_interest`, 
+    4
+  ) as `total_interest`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`interest`, 
+    4
+  ) as `interest`, 
+  TRUNCATE(
+    `tc_repayment_detail_isomer`.`balance_amount`, 
+    4
+  ) as `balance_amount` 
+from 
+  `tc_repayment_detail_isomer` 
+where 
+  (
+    `tc_repayment_detail_isomer`.`belong_user_id` IN (30050, 30082, 30018)
+  ) 
+order by 
+  `tc_repayment_detail_isomer`.`origin_id` asc
+  建议：
+ 新建一个key(belong_user_id,origin_id)
+
+
+  select 
+  `t1`.`origin_id` as `repayment_plan_id`, 
+  `t1`.`subject_id`, 
+  `t1`.`plan_time`, 
+  `t2`.`limit_category`, 
+  `t2`.`vouch_category`, 
+  `t2`.`is_open_vouch`, 
+  `t2`.`funding` 
+from 
+  `tc_repayment_plan` `t1` 
+  join `tc_subject_repaying` `t2` on `t1`.`subject_id` = `t2`.`origin_id` 
+where 
+  (
+    (
+      (
+        (
+          (
+            (
+              `t1`.`subject_id` = `t2`.`origin_id`
+            ) 
+            AND (`t1`.`status` = 0)
+          ) 
+          AND (`t1`.`repayment_status` = 0)
+        ) 
+        AND (`t2`.`is_fast` = 0)
+      ) 
+      AND (`t2`.`funding` != 1)
+    ) 
+    AND (
+      `t1`.`plan_time` <= '2016-06-05 23:59:59'
+    )
+  )
+  建议：
+在tc_repayment_plan表上添加（subject_id,plan_time)的索引
+在tc_subject_repaying表上添加(origin_id,is_fast,funding)的索引
+如果funding的值是不多，能否把funding的值不等于改成in。
+
+
+
+  select 
+  `t1`.`id`, 
+  `t1`.`origin_id`, 
+  `t1`.`type`, 
+  `t1`.`order_no`, 
+  `t1`.`date_value`, 
+  `t1`.`user_id`, 
+  `t1`.`trans_amount`, 
+  `t1`.`amount`, 
+  `t1`.`handling_charge`, 
+  `t1`.`rate`, 
+  `t1`.`error_msg`, 
+  `t1`.`DC_signature`, 
+  `t1`.`approve_result`, 
+  `t1`.`status`, 
+  `t1`.`from_ip`, 
+  `t1`.`create_time`, 
+  `t1`.`return_time`, 
+  `t1`.`update_time`, 
+  `t1`.`update_user_id`, 
+  `t1`.`bank_no`, 
+  `t1`.`from_ssid`, 
+  `t1`.`bank_id`, 
+  `t1`.`next_check_time`, 
+  `t2`.`user_real_name` as `user_real_name`, 
+  `t2`.`login_username` 
+from 
+  `uac_deposit_online` `t1` 
+  join `uac_user_redundancy` `t2` on `t1`.`user_id` = `t2`.`user_id` 
+where 
+  (
+    (
+      (
+        (`t1`.`status` = 0) 
+        AND (
+          `t1`.`create_time` >= '2016-06-08T00:00:00'
+        )
+      ) 
+      AND (
+        `t1`.`create_time` <= '2016-06-15T00:00:00 23:59:59'
+      )
+    ) 
+    AND (`t1`.`approve_result` = 2)
+  ) 
+order by 
+  `t1`.`create_time` desc 
+limit 
+  0, 
+  15
+ 建议：
+ 增加uac_deposit_online表上增加user_id的索引和create_time的索引。
+
+select 
+  `uac_running`.`id`, 
+  `uac_running`.`user_id`, 
+  `uac_running`.`amount`, 
+  `uac_running`.`to_user_id`, 
+  `uac_running`.`new_amount`, 
+  `uac_running`.`new_frozen_amount`, 
+  `uac_running`.`new_total_amount`, 
+  `uac_running`.`created_user_id`, 
+  `uac_running`.`create_time`, 
+  `uac_running`.`type`, 
+  `uac_running`.`relation_id`, 
+  `uac_running`.`remark`, 
+  `uac_running`.`from_ip`, 
+  `uac_running`.`direction`, 
+  `uac_running`.`relation_meta`, 
+  `uac_running`.`amount_change_type`, 
+  `uac_running`.`group_id`, 
+  `uac_running`.`debit_running_code`, 
+  `uac_running`.`credit_running_code`, 
+  `uac_running`.`subject_id` 
+from 
+  `uac_running` 
+where 
+  (: 1) 
+order by 
+  `uac_running`.`create_time` desc 
+limit 
+  : 2, 
+  : 3
+
+ 建议改成:
+ select * from uac_running o where o.id in (select id from  uac_running order by 
+  `uac_running`.`create_time` desc limit : 2, ：3) and 1=1
